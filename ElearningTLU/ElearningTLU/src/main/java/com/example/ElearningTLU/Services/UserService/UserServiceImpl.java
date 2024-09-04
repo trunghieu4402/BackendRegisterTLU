@@ -3,6 +3,7 @@ package com.example.ElearningTLU.Services.UserService;
 import com.example.ElearningTLU.Dto.PersonDto;
 import com.example.ElearningTLU.Dto.StudentDto;
 import com.example.ElearningTLU.Dto.TeacherDto;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
 
 public interface UserServiceImpl {

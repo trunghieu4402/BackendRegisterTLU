@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class ClassRoomDto {
+public class ClassRequest {
     private String CourseSemesterGroupId;
     List<LichHocRequest> lichHocRequestList = new ArrayList<>();
 }

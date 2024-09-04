@@ -2,10 +2,10 @@ package com.example.ElearningTLU.Services.ClassRoomService;
 
 import com.example.ElearningTLU.Dto.Lop;
 import com.example.ElearningTLU.Dto.RoomDto;
-import com.example.ElearningTLU.Entity.ClassRoom;
+import com.example.ElearningTLU.Entity.Class;
 import com.example.ElearningTLU.Entity.Room;
 import com.example.ElearningTLU.Entity.Semester_Group;
-import com.example.ElearningTLU.Repository.ClassRoomRepository;
+import com.example.ElearningTLU.Repository.ClassRepository;
 import com.example.ElearningTLU.Repository.RoomRepository;
 import com.example.ElearningTLU.Repository.SemesterGroupRepository;
 import com.example.ElearningTLU.Utils.RegisterUtils;
@@ -15,10 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class RoomService implements RoomServiceImpl{
@@ -30,7 +28,7 @@ public class RoomService implements RoomServiceImpl{
     private RegisterUtils registerUtils;
 
     @Autowired
-    private ClassRoomRepository classRoomRepository;
+    private ClassRepository classRepository;
     private ModelMapper mapper = new ModelMapper();
     public ResponseEntity<?> getAllRoom()
     {
@@ -64,9 +62,9 @@ public class RoomService implements RoomServiceImpl{
         List<RoomDto> roomDtos= new ArrayList<>();
         List<Semester_Group> semesterGroupList = this.registerUtils.semesterGroupList(semesterId);
         List<Room> Allroom = this.roomRepository.findAll();
-        List<ClassRoom> classRoom= new ArrayList<>();
+        List<Class> aClass = new ArrayList<>();
         List<String>roomId = new ArrayList<>();
-        List<ClassRoom> ListCourseClassRoom= new ArrayList<>();
+        List<Class> listCourseClass = new ArrayList<>();
         Allroom.forEach(i->
         {
             RoomDto roomDto = this.mapper.map(i,RoomDto.class);
@@ -82,20 +80,20 @@ public class RoomService implements RoomServiceImpl{
             {
                 System.out.println(course.getCourseId());
                 List<Lop> lopList = new ArrayList<>();
-                this.classRoomRepository.getAllClassRoomByCourse(course.getCourseSemesterGroupId()).forEach(x->
+                this.classRepository.getAllClassRoomByCourse(course.getCourseSemesterGroupId()).forEach(x->
                 {
 
-                    List<String>t= this.classRoomRepository.getRoomId(course.getCourseSemesterGroupId());
+                    List<String>t= this.classRepository.getRoomId(course.getCourseSemesterGroupId());
                     roomId.addAll(t);
                     System.out.println("Teacher: "+x.getTeacher().getPersonId());
-                    ListCourseClassRoom.add(x);
+                    listCourseClass.add(x);
 //                    System.out.println(x.getRoom().getRoomId());
                     System.out.println(x.getClassRoomId());
-                    classRoom.add(x);
+                    aClass.add(x);
                 });
             });
         });
-        ListCourseClassRoom.forEach(i->
+        listCourseClass.forEach(i->
         {
             roomDtos.forEach(r->
             {

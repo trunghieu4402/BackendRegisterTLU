@@ -12,6 +12,6 @@ public class Teacher extends Person {
     private Department leaddepartment;
 
     @OneToMany(mappedBy = "teacher")
-    List<ClassRoom> listClassRooms = new ArrayList<>();
+    List<Class> listClasses = new ArrayList<>();
 
 }

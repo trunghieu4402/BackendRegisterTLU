@@ -3,12 +3,11 @@ package com.example.ElearningTLU.Services.TeachingScheduleService;
 import com.example.ElearningTLU.Dto.Request.GradeStudentRequest;
 import com.example.ElearningTLU.Dto.Response.ClassRoomDetailResponse;
 import com.example.ElearningTLU.Dto.Response.GradeStudentResponse;
-import com.example.ElearningTLU.Dto.ScheduleDto;
 import com.example.ElearningTLU.Dto.TeacherResponse;
 import com.example.ElearningTLU.Entity.*;
+import com.example.ElearningTLU.Entity.Class;
 import com.example.ElearningTLU.Repository.*;
 import com.example.ElearningTLU.Services.ClassRoomService.RoomService;
-import com.example.ElearningTLU.Services.ClassRoomService.RoomServiceImpl;
 import com.example.ElearningTLU.Utils.RegisterUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +19,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -43,7 +40,7 @@ public class TeachingScheduleService implements TeachingScheduleServiceImpl {
     private CourseRepository courseRepository;
 
     @Autowired
-    private ClassRoomRepository classRoomRepository;
+    private ClassRepository classRepository;
 
     @Autowired
     private CourseGardeRepository courseGardeRepository;
@@ -107,25 +104,25 @@ public class TeachingScheduleService implements TeachingScheduleServiceImpl {
         Person person = this.personRepository.findByUserNameOrPersonId(TeacherId).get();
         Teacher teacher = this.mapper.map(person,Teacher.class);
         LocalDate date = LocalDate.of(2024,9,11);
-        List<ClassRoom_Student> ListStudent= new ArrayList<>();
+        List<Class_Student> ListStudent= new ArrayList<>();
         Semester_Group semesterGroup = this.semesterGroupRepository.findById(semesterId).get();
         if(semesterGroup.getTimeDangKyHoc().until(date,ChronoUnit.DAYS)<0)
         {
             return new ResponseEntity<>("Khong Co Thong Tin",HttpStatus.BAD_REQUEST);
         }
 
-            for(ClassRoom classRoom : teacher.getListClassRooms())
+            for(Class aClass : teacher.getListClasses())
             {
-            if(classRoom.getClassRoomId().equals(ClassRoomId)&&classRoom.getCourseSemesterGroup().getSemesterGroup().equals(semesterGroup))
+            if(aClass.getClassRoomId().equals(ClassRoomId)&& aClass.getCourseSemesterGroup().getSemesterGroup().equals(semesterGroup))
                 {
                     ClassRoomDetailResponse classRoomDetailResponse= new ClassRoomDetailResponse();
-                    classRoomDetailResponse.setClassRoomId(classRoom.getClassRoomId());
-                    classRoomDetailResponse.setClassRoomName(classRoom.getName());
-                    classRoomDetailResponse.setSemesterGroupId(classRoom.getCourseSemesterGroup().getSemesterGroup().getSemesterGroupId());
-                    classRoomDetailResponse.setStart(classRoom.getStart());
-                    classRoomDetailResponse.setFinish(classRoom.getFinish());
+                    classRoomDetailResponse.setClassRoomId(aClass.getClassRoomId());
+                    classRoomDetailResponse.setClassRoomName(aClass.getName());
+                    classRoomDetailResponse.setSemesterGroupId(aClass.getCourseSemesterGroup().getSemesterGroup().getSemesterGroupId());
+                    classRoomDetailResponse.setStart(aClass.getStart());
+                    classRoomDetailResponse.setFinish(aClass.getFinish());
     //                List<GradeStudentResponse> studentResponses= new ArrayList<>();
-                    for(ClassRoom_Student classRoomStudent: classRoom.getClassRoomStudents())
+                    for(Class_Student classRoomStudent: aClass.getClassStudents())
                     {
                         GradeStudentResponse studentResponse= new GradeStudentResponse();
                         studentResponse.setStudentId(classRoomStudent.getStudent().getPersonId());
@@ -154,19 +151,19 @@ public class TeachingScheduleService implements TeachingScheduleServiceImpl {
 
         Person person = this.personRepository.findByUserNameOrPersonId(id).get();
         Teacher teacher = this.mapper.map(person,Teacher.class);
-        List<ClassRoom> classRoomList = new ArrayList<>();
+        List<Class> classList = new ArrayList<>();
         Course course = new Course();
 //        this.classRoomRepository.fi
         Student student= this.mapper.map(this.personRepository.findByUserNameOrPersonId(gradeStudentRequest.getStudentId()).get(),Student.class);
         boolean CheckClassRoom= true;
         //lay danh sach lop ma giao vien dang day cuar lop do
-        for(ClassRoom classRoom: teacher.getListClassRooms())
+        for(Class aClass : teacher.getListClasses())
         {
-            if(classRoom.getCourseSemesterGroup().getSemesterGroup().equals(semesterGroup) && classRoom.getClassRoomId().equals(gradeStudentRequest.getClassRoomId()))
+            if(aClass.getCourseSemesterGroup().getSemesterGroup().equals(semesterGroup) && aClass.getClassRoomId().equals(gradeStudentRequest.getClassRoomId()))
             {
-                System.out.println("classRoomId:" +classRoom.getClassRoomId());
-                course=this.courseRepository.findByCourseId(classRoom.getCourseSemesterGroup().getCourseId());
-                classRoomList.add(classRoom);
+                System.out.println("classRoomId:" + aClass.getClassRoomId());
+                course=this.courseRepository.findByCourseId(aClass.getCourseSemesterGroup().getCourseId());
+                classList.add(aClass);
                 CheckClassRoom=false;
             }
         }
@@ -177,13 +174,13 @@ public class TeachingScheduleService implements TeachingScheduleServiceImpl {
 
 //        List<ClassRoom> classRoomList = this.classRoomRepository.findByClassRoomId(classRoom1.getClassRoomId());
         //lay sv theo lop do cap nhat diem cho sv trong lop
-        for(ClassRoom r: classRoomList)
+        for(Class r: classList)
         {
             if(this.classRoomStudentRepository.findByClassRoomAndStudent(r.getId(),student.getPersonId()).isEmpty())
             {
                 return new ResponseEntity<>("Ma Sinh Vien "+gradeStudentRequest.getStudentId()+" Khong Thuoc Lop: "+gradeStudentRequest.getClassRoomId(),HttpStatus.BAD_REQUEST);
             }
-            ClassRoom_Student classRoomStudent = this.classRoomStudentRepository.findByClassRoomAndStudent(r.getId(),student.getPersonId()).get();
+            Class_Student classRoomStudent = this.classRoomStudentRepository.findByClassRoomAndStudent(r.getId(),student.getPersonId()).get();
             classRoomStudent.setMidScore(gradeStudentRequest.getMidScore());
             classRoomStudent.setEndScore(gradeStudentRequest.getEndScore());
             this.classRoomStudentRepository.save(classRoomStudent);
@@ -200,11 +197,11 @@ public class TeachingScheduleService implements TeachingScheduleServiceImpl {
         int n=0;
         int credit=student.getTotalCredits();
         Course_SemesterGroup courseSemesterGroup = this.courseSemesterGroupRepository.findCourseOnSemesterGroup(course.getCourseId(),semesterGroup.getSemesterGroupId());
-        for (ClassRoom cl:courseSemesterGroup.getClassRoomList())
+        for (Class cl:courseSemesterGroup.getClassList())
         {
             if(cl.getClassRoomId().equals(ClassRoomId))
             {
-                for (ClassRoom_Student roomStudent: cl.getClassRoomStudents())
+                for (Class_Student roomStudent: cl.getClassStudents())
                 {
                     if(roomStudent.getStudent().equals(student))
                     {

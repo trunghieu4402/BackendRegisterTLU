@@ -27,6 +27,8 @@ public class SecurityConfig {
 //        System.out.println(http.getObject());
          http.authorizeHttpRequests(request->
                  request.requestMatchers(HttpMethod.POST,PUBLIC_ENDPOINTS).permitAll()
+                         .requestMatchers(HttpMethod.POST,"/websocket/**").permitAll()
+                         .requestMatchers(HttpMethod.GET,"/websocket/**").permitAll()
                          .requestMatchers(HttpMethod.GET,PUBLIC_ENDPOINTS).permitAll()
                          .requestMatchers(HttpMethod.POST,PRIVATE_ENDPOINT).hasAuthority("SCOPE_ADMIN")
                          .requestMatchers(HttpMethod.GET,PRIVATE_ENDPOINT).hasAuthority("SCOPE_ADMIN")

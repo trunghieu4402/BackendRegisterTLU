@@ -1,6 +1,6 @@
 package com.example.ElearningTLU.Services.CourseService;
 
-import com.example.ElearningTLU.Dto.Request.CourseDto;
+import com.example.ElearningTLU.Dto.Request.CourseRequest;
 import com.example.ElearningTLU.Entity.*;
 import com.example.ElearningTLU.Repository.*;
 import org.modelmapper.ModelMapper;
@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,40 +34,46 @@ public class CourseService implements CourseServiceImpl{
             private CourseSemesterGroupRepository courseSemesterGroupRepository;
     @Autowired
             private SemesterGroupRepository semesterGroupRepository;
+
+    @Autowired
+            private BaseCourseRepository baseCourseRepository;
     ModelMapper mapper = new ModelMapper();
-    public ResponseEntity<?> addCourse(CourseDto courseDto)
+    public ResponseEntity<?> addCourse(CourseRequest courseRequest)
     {
         int n=0;
 //        System.out.println(courseDto.getCourseId()
 //        Optional<Course> course = this.courseRepository.findById(courseDto.getCourseId());
-        if(this.courseRepository.findById(courseDto.getCourseId()).isPresent())
+        if(this.courseRepository.findById(courseRequest.getCourseId()).isPresent())
         {
             return new ResponseEntity<>("Môn học đã tồn tại", HttpStatus.CONFLICT);
         }
         Course course = new Course();
-                course=this.mapper.map(courseDto,Course.class);
+                course=this.mapper.map(courseRequest,Course.class);
 
         this.courseRepository.save(course);
         StatisticsStudent statisticsStudent = new StatisticsStudent();
         statisticsStudent.setCourse(course);
 //        return new ResponseEntity<>(course,HttpStatus.OK);
-        if(courseDto.getType()==CourseType.COSO)
+        if(courseRequest.getType()==CourseType.COSO)
         {
+            BaseCourse course1 = new BaseCourse();
+            course1=this.mapper.map(course,BaseCourse.class);
+            this.baseCourseRepository.save(course1);
             course.setType(CourseType.COSO);
             n+=this.personRepository.findAllPersonByRole(Role.STUDENT.name()).get().size();
             statisticsStudent.setNumberOfStudent(n);
             this.statisticsStudentRepository.save(statisticsStudent);
 
         }
-        else if (courseDto.getType()==CourseType.COSONGANH)
+        else if (courseRequest.getType()==CourseType.COSONGANH)
         {
 //            Optional<Department> department = this.departmentRepository.findById(courseDto.getDepartmentId());
-            if(courseDto.getDepartmentId()==null)
+            if(courseRequest.getDepartmentId()==null)
             {
                 this.courseRepository.delete(course);
                 return new ResponseEntity<>("Vui long Nhap ma Khoa",HttpStatus.BAD_REQUEST);
             }
-            for(String id : courseDto.getDepartmentId()) {
+            for(String id : courseRequest.getDepartmentId()) {
                 if(this.departmentRepository.findById(id).isEmpty())
                 {
                     this.courseRepository.delete(course);
@@ -91,12 +96,12 @@ public class CourseService implements CourseServiceImpl{
         }
         else
         {
-            if(courseDto.getMajorId()==null)
+            if(courseRequest.getMajorId()==null)
             {
                 this.courseRepository.delete(course);
                 return new ResponseEntity<>("Vui long Nhap ma Nganh",HttpStatus.BAD_REQUEST);
             }
-            for(String id:courseDto.getMajorId())
+            for(String id: courseRequest.getMajorId())
             {
                 if(this.majorRepository.findById(id).isEmpty())
                 {
@@ -121,12 +126,11 @@ public class CourseService implements CourseServiceImpl{
         }
         this.courseRepository.save(course);
 //        System.out.println("dieu kiejn :"+courseDto.getReqiId());
-        if(courseDto.getReqiId()!=null)
+        if(courseRequest.getReqiId()!=null)
         {
-            System.out.println("Co dieu kien");
-                for(String RequestCourseId: courseDto.getReqiId())
+                for(String RequestCourseId: courseRequest.getReqiId())
                 {
-                    if(RequestCourseId.equals(courseDto.getCourseId()))
+                    if(RequestCourseId.equals(courseRequest.getCourseId()))
                     {
                         this.courseRepository.delete(course);
                         return new ResponseEntity<>("Ma Mon "+RequestCourseId+"Khong The La Dieu Kien Cua Chinh no",HttpStatus.BAD_REQUEST);
@@ -136,18 +140,8 @@ public class CourseService implements CourseServiceImpl{
                         this.courseRepository.delete(course);
                         return new ResponseEntity<>("Mã môn Dieu Kien "+RequestCourseId+" không tồn tại",HttpStatus.NOT_FOUND);
                     }
-                    System.out.println(course.getCourseId()+"//"+RequestCourseId);
-//                    Course requestcourse
                     Course requestcourse=this.courseRepository.findById(RequestCourseId).get();
-                    course.getDiemKienTienQuyet().add(requestcourse);
-//                    course1=this.courseRepository.findById(courseDto.getCourseId()).get();
-                    System.out.println(RequestCourseId);
-
-//                    Requirement requirement = new Requirement();
-//                    requirement.setCourse(course);
-//                    requirement.setRequestCourse(requestcourse);
-//                    Requirement r=this.requirementRepository.save(requirement);
-//                    course.getRequestCourse().add(r);
+                    course.getPrerequisites().add(requestcourse);
                 }
         }
         Course course1=this.courseRepository.save(course);
@@ -182,7 +176,7 @@ public class CourseService implements CourseServiceImpl{
 
         return new ResponseEntity<>(course,HttpStatus.OK);
     }
-    public ResponseEntity<?> updateCourse(CourseDto courseDto)
+    public ResponseEntity<?> updateCourse(CourseRequest courseDto)
     {
         int n=0;
         if( this.courseRepository.findById(courseDto.getCourseId()).isEmpty())
@@ -261,7 +255,7 @@ public class CourseService implements CourseServiceImpl{
                 for(String CourseId: courseDto.getReqiId())
                 {
                     Course courseRequest = this.courseRepository.findById(CourseId).get();
-                    course.getDiemKienTienQuyet().add(courseRequest);
+                    course.getPrerequisites().add(courseRequest);
 //                    Requirement requirement = new Requirement();
 //                    Course course2 = this.courseRepository.findById(courseDto.getCourseId()).get();
 //                    requirement.setRequestCourse(this.courseRepository.findById(CourseId).get());

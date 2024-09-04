@@ -45,7 +45,7 @@ public class Student extends Person {
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     @JsonIgnore
-    List<ClassRoom_Student> classRoomStudents = new ArrayList<>();
+    List<Class_Student> classRoomStudents = new ArrayList<>();
 
 }
 //

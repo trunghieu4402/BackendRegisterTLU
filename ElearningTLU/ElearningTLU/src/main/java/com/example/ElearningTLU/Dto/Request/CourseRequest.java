@@ -1,14 +1,13 @@
 package com.example.ElearningTLU.Dto.Request;
 
 import com.example.ElearningTLU.Entity.CourseType;
-import com.example.ElearningTLU.Entity.Major;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class CourseDto {
+public class CourseRequest {
     private String CourseId;
     private String CourseName;
     private int Credits;

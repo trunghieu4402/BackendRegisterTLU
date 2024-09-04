@@ -6,8 +6,12 @@ import com.example.ElearningTLU.Dto.Response.CourseGradeResponse;
 import com.example.ElearningTLU.Dto.Response.TimeTableResponse;
 import com.example.ElearningTLU.Entity.*;
 import com.example.ElearningTLU.Repository.*;
+import com.example.ElearningTLU.Services.EmailService.EmailService;
 import com.example.ElearningTLU.Utils.CourseUtils;
 import com.example.ElearningTLU.Utils.TimeTableUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,9 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService implements UserServiceImpl{
@@ -51,6 +53,8 @@ public class UserService implements UserServiceImpl{
     private CourseUtils courseUtils;
     @Autowired
     private SemesterGroupRepository semesterGroupRepository;
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private TimeTableRepository timeTableRepository;
@@ -60,6 +64,8 @@ public class UserService implements UserServiceImpl{
     @Autowired
     private InvoiceRepository invoiceRepository;
 
+    ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
     private TimeTableUtils timeTableUtils;
     private ModelMapper mapper= new ModelMapper();
@@ -68,8 +74,7 @@ public class UserService implements UserServiceImpl{
 //    public BCryptPasswordEncoder bCryptPasswordEncoder() {
 //        return new BCryptPasswordEncoder();
 //    }
-    public ResponseEntity<?> CreateStudent(StudentDto personDto)
-    {
+    public ResponseEntity<?> CreateStudent(StudentDto personDto) {
         LocalDate now = LocalDate.now();
         int count = 1;
         if(this.personRepository.findAllPersonByRole(Role.STUDENT.name()).isPresent())
@@ -134,7 +139,9 @@ public class UserService implements UserServiceImpl{
         this.ThemThongKe(student);
 
         //Them +1 vao so luong sinh vien phai hoc cac mon
+        this.sendNotification(student.getUserName(),student.getPersonId(),student.getEmail());
         return new ResponseEntity<>(student, HttpStatus.OK);
+
 
     }
     public  ResponseEntity<?> GetAllStudent()
@@ -465,5 +472,15 @@ public class UserService implements UserServiceImpl{
             list.add(this.mapper.map(grade,CourseGradeResponse.class));
         }
         return new ResponseEntity<>(list,HttpStatus.OK);
+    }
+    public void sendNotification(String user, String password, String toEmail) {
+
+//            String pass=passwordEncoder.de(password);
+            emailResponse response = new emailResponse();
+            response.setUsername(user);
+            response.setPassword(password);
+            this.emailService.sendSimpleEmail(toEmail,"Cung Cap Tai Khoan",response.toString());
+
+
     }
 }

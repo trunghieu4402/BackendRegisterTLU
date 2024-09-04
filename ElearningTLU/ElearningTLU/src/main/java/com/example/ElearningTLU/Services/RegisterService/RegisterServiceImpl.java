@@ -1,20 +1,17 @@
 package com.example.ElearningTLU.Services.RegisterService;
 
 import com.example.ElearningTLU.Dto.Response.ClassRoomDtoResponse;
-import com.example.ElearningTLU.Dto.Response.CourseDtoResponse;
 import com.example.ElearningTLU.Dto.Response.CourseSemesterGroupResponse;
 import com.example.ElearningTLU.Entity.*;
+import com.example.ElearningTLU.Entity.Class;
 import com.example.ElearningTLU.Repository.*;
 import com.example.ElearningTLU.Utils.CourseUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +23,7 @@ public class RegisterServiceImpl implements RegisterService{
     @Autowired
     private PersonRepository personRepository;
     @Autowired
-    private ClassRoomRepository classRoomRepository;
+    private ClassRepository classRepository;
     @Autowired
     private CourseUtils courseUtils;
     @Autowired
@@ -48,7 +45,7 @@ public class RegisterServiceImpl implements RegisterService{
         }
 
         Semester_Group semesterGroup = this.semesterGroupRepository.findSemesterGroupByGroupAndTime(student.getGroup().getGroupId(),"2024-09-10").get();
-        List<ClassRoom> classRooms = new ArrayList<>();
+        List<Class> aClasses = new ArrayList<>();
         //Lay Danh Sach ClassRoom trong Ky hien tai trong danh sach nhung mon dc phep dk
         List<CourseSemesterGroupResponse> courseSemesterGroups = this.courseUtils.getRegisterCourse(student);
         List<Course_SemesterGroup> list= new ArrayList<>();
@@ -67,91 +64,91 @@ public class RegisterServiceImpl implements RegisterService{
         //lay lop muon dk
         for(Course_SemesterGroup courseSemesterGroup: list )
         {
-            for(ClassRoom classRoom : courseSemesterGroup.getClassRoomList())
+            for(Class aClass : courseSemesterGroup.getClassList())
             {
-                if(classRoom.getClassRoomId().equals(classroom))
+                if(aClass.getClassRoomId().equals(classroom))
                 {
-                    if(classRoom.getRoom().getSeats()==classRoom.getCurrentSlot())
+                    if(aClass.getRoom().getSeats()== aClass.getCurrentSlot())
                     {
                         return new ResponseEntity<>("Lop Hoc Da Day",HttpStatus.OK);
                     }
-                    classRooms.add(classRoom);
+                    aClasses.add(aClass);
 
                 }
             }
         }
 
-        if(classRooms.isEmpty())
+        if(aClasses.isEmpty())
         {
             return new ResponseEntity<>("Ban Khong duoc Dang Ky Lop: "+classroom,HttpStatus.BAD_REQUEST);
         }
         //kiem tra xem da ddk mon do hay chua
-        List<ClassRoom> classRoomCurrent= new ArrayList<>();
+        List<Class> classCurrent = new ArrayList<>();
 //        List<ClassRoom_Student> classRoomStudents = new ArrayList<>();
         boolean CheckClass = false;
         // danh sach class sv da dang ky
-        List<ClassRoom>classRoomList = getAllClassRoomWereRegister(student,semesterGroup);
-        for(ClassRoom classRoom: classRoomList)
+        List<Class> classList = getAllClassRoomWereRegister(student,semesterGroup);
+        for(Class aClass : classList)
         {
-            if(classRooms.get(0).getCourseSemesterGroup().getCourseId().equals(classRoom.getCourseSemesterGroup().getCourseId()))
+            if(aClasses.get(0).getCourseSemesterGroup().getCourseId().equals(aClass.getCourseSemesterGroup().getCourseId()))
             {
-                classRoomCurrent.add(classRoom);
-                this.removeClassRoomStudent(classRoom,student);
+                classCurrent.add(aClass);
+                this.removeClassRoomStudent(aClass,student);
 
-                classRoom.setCurrentSlot(classRoom.getCurrentSlot()-1);
-                this.classRoomRepository.save(classRoom);
+                aClass.setCurrentSlot(aClass.getCurrentSlot()-1);
+                this.classRepository.save(aClass);
                 System.out.println("Da Xoa Lop");
                 CheckClass=true;
             }
         }
         System.out.println(CheckClass);
-        if(!CheckStudentSchedule(classRooms,student,semesterGroup))
+        if(!CheckStudentSchedule(aClasses,student,semesterGroup))
         {
             //hoan tra lai class da xoa
             if(CheckClass)
             {
-                for(ClassRoom classRoom: classRoomCurrent)
+                for(Class aClass : classCurrent)
                 {
 
-                    ClassRoom_Student roomStudent = new ClassRoom_Student();
+                    Class_Student roomStudent = new Class_Student();
                     roomStudent.setStudent(student);
-                    roomStudent.setClassRoom(classRoom);
+                    roomStudent.setAClass(aClass);
                     roomStudent.setMidScore(0L);
                     roomStudent.setEndScore(0L);
-                    classRoom.setCurrentSlot(classRoom.getCurrentSlot()+1);
-                    classRoom=this.classRoomRepository.save(classRoom);
-                    this.addStudentToClass(classRoom,student);
+                    aClass.setCurrentSlot(aClass.getCurrentSlot()+1);
+                    aClass =this.classRepository.save(aClass);
+                    this.addStudentToClass(aClass,student);
                     student.getClassRoomStudents().add(roomStudent);
                 }
             }
             return new ResponseEntity<>("Thoi Gian Dang Ky Lop Trung",HttpStatus.BAD_REQUEST);
         }
-        for (ClassRoom classRoom: classRooms)
+        for (Class aClass : aClasses)
         {
 //                    ClassRoom_Student roomStudent = new ClassRoom_Student();
-                    classRoom.setCurrentSlot(classRoom.getCurrentSlot()+1);
-                    classRoom=this.classRoomRepository.save(classRoom);
-                    this.addStudentToClass(classRoom,student);
+                    aClass.setCurrentSlot(aClass.getCurrentSlot()+1);
+                    aClass =this.classRepository.save(aClass);
+                    this.addStudentToClass(aClass,student);
         }
         return new ResponseEntity<>("Dang Ky thanh Cong",HttpStatus.OK);
     }
     //Check thoi gian dk hoc
-    public boolean CheckStudentSchedule(List<ClassRoom> classRooms, Student student,Semester_Group semesterGroup)
+    public boolean CheckStudentSchedule(List<Class> aClasses, Student student, Semester_Group semesterGroup)
     {
-        List<ClassRoom> classRoomList = this.getAllClassRoomWereRegister(student,semesterGroup);
-        System.out.println(classRoomList.size());
+        List<Class> classList = this.getAllClassRoomWereRegister(student,semesterGroup);
+        System.out.println(classList.size());
 //        List<ClassRoom_Student> preSchedules = this.preScheduleRepository.findByStudentIdAndSemesterGroup(student.getPersonId(),semesterGroup);
-        if(classRoomList.isEmpty())
+        if(classList.isEmpty())
         {
             return true;
         }
-        for(ClassRoom classRoom: classRooms)
+        for(Class aClass : aClasses)
         {
-            System.out.println("Lop Moi: "+classRoom.getClassRoomId()+classRoom.getStart()+"//"+classRoom.getFinish());
-            for(ClassRoom cl: classRoomList)
+            System.out.println("Lop Moi: "+ aClass.getClassRoomId()+ aClass.getStart()+"//"+ aClass.getFinish());
+            for(Class cl: classList)
             {
             System.out.println("Lop co san: "+cl.getClassRoomId()+cl.getStart()+"//"+cl.getFinish());
-                if(classRoom.getStart()>=cl.getStart() && classRoom.getStart()<=cl.getFinish() || classRoom.getFinish()>=cl.getStart() && classRoom.getFinish()<=cl.getFinish())
+                if(aClass.getStart()>=cl.getStart() && aClass.getStart()<=cl.getFinish() || aClass.getFinish()>=cl.getStart() && aClass.getFinish()<=cl.getFinish())
                 {
                     return false;
                 }
@@ -160,10 +157,10 @@ public class RegisterServiceImpl implements RegisterService{
         return true;
     }
 
-    public void addStudentToClass(ClassRoom classRoom,Student student)
+    public void addStudentToClass(Class aClass, Student student)
     {
-        ClassRoom_Student classRoomStudent = new ClassRoom_Student();
-        classRoomStudent.setClassRoom(classRoom);
+        Class_Student classRoomStudent = new Class_Student();
+        classRoomStudent.setAClass(aClass);
         classRoomStudent.setStudent(student);
         classRoomStudent.setMidScore(0L);
         classRoomStudent.setEndScore(0L);
@@ -173,15 +170,15 @@ public class RegisterServiceImpl implements RegisterService{
 //        student.getClassRoomStudents().add(classRoomStudent);
 //        this.personRepository.save(student);
     }
-    public void removeClassRoomStudent(ClassRoom classRoom,Student student)
+    public void removeClassRoomStudent(Class aClass, Student student)
     {
 //        System.out.println("ClassROomId"+classRoom.getClassRoomId());
-                ClassRoom_Student classRoomStudent= new ClassRoom_Student();
-               classRoomStudent=this.classRoomStudentRepository.findByClassRoomAndStudent(classRoom.getId(),student.getPersonId()).get();
-               System.out.println(classRoomStudent.getClassRoom().getClassRoomId());
+                Class_Student classRoomStudent= new Class_Student();
+               classRoomStudent=this.classRoomStudentRepository.findByClassRoomAndStudent(aClass.getId(),student.getPersonId()).get();
+               System.out.println(classRoomStudent.getAClass().getClassRoomId());
                student.getClassRoomStudents().remove(classRoomStudent);
                 this.classRoomStudentRepository.delete(classRoomStudent);
-       System.out.println("Dax Xoa Sinh vien "+student.getPersonId()+"khoi lop" +classRoom.getClassRoomId());
+       System.out.println("Dax Xoa Sinh vien "+student.getPersonId()+"khoi lop" + aClass.getClassRoomId());
     }
     public ResponseEntity<?> getAllCLass(String perId)
     {
@@ -201,24 +198,24 @@ public class RegisterServiceImpl implements RegisterService{
         LocalDate date = LocalDate.now();
 
         Semester_Group semesterGroup = this.semesterGroupRepository.findSemesterGroupByGroupAndTime(student.getGroup().getGroupId(),"2024-09-10").get();
-        List<ClassRoom> classRoomStudents = this.getAllClassRoomWereRegister(student,semesterGroup);
-        List<ClassRoomDtoResponse> list=courseUtils.convertToClassRoomResponse(classRoomStudents);
+        List<Class> classStudents = this.getAllClassRoomWereRegister(student,semesterGroup);
+        List<ClassRoomDtoResponse> list=courseUtils.convertToClassRoomResponse(classStudents);
         return new ResponseEntity<>(list,HttpStatus.OK);
     }
-    public List<ClassRoom> getAllClassRoomWereRegister(Student student, Semester_Group semesterGroup)
+    public List<Class> getAllClassRoomWereRegister(Student student, Semester_Group semesterGroup)
     {
         Student student1 = this.mapper.map(this.personRepository.findByUserNameOrPersonId(student.getPersonId()),Student.class);;
 //        Semester_Group semesterGroup = this.semesterGroupRepository.findSemesterGroupByGroupAndTime(student.getGroup().getGroupId(),"2024-09-10").get();
-        List<ClassRoom> classRoomStudents = new ArrayList<>();
-        for(ClassRoom_Student roomStudent: student1.getClassRoomStudents())
+        List<Class> classStudents = new ArrayList<>();
+        for(Class_Student roomStudent: student1.getClassRoomStudents())
         {
-            System.out.println(roomStudent.getClassRoom().getClassRoomId());
-            if(roomStudent.getClassRoom().getCourseSemesterGroup().getSemesterGroup().equals(semesterGroup))
+            System.out.println(roomStudent.getAClass().getClassRoomId());
+            if(roomStudent.getAClass().getCourseSemesterGroup().getSemesterGroup().equals(semesterGroup))
             {
-                classRoomStudents.add(roomStudent.getClassRoom());
+                classStudents.add(roomStudent.getAClass());
             }
         }
-        return classRoomStudents;
+        return classStudents;
     }
     //Hủy mon
     public ResponseEntity<?> removeClassRoom(String userId,String classRoomId)
@@ -226,16 +223,16 @@ public class RegisterServiceImpl implements RegisterService{
         Student student= this.mapper.map(this.personRepository.findByUserNameOrPersonId(userId).get(),Student.class);
         Semester_Group semesterGroup = this.semesterGroupRepository.findSemesterGroupByGroupAndTime(student.getGroup().getGroupId(),"2024-09-10").get();
 //        List<> preSchedule = this.preScheduleRepository.findByStudentIdAndSemesterGroup(student.getPersonId(),semesterGroup.getSemesterGroupId());
-        List<ClassRoom> classRooms = this.getAllClassRoomWereRegister(student,semesterGroup);
+        List<Class> aClasses = this.getAllClassRoomWereRegister(student,semesterGroup);
         boolean check= true;
-        for (ClassRoom classRoom:classRooms)
+        for (Class aClass : aClasses)
         {
-            if(classRoom.getClassRoomId().equals(classRoomId))
+            if(aClass.getClassRoomId().equals(classRoomId))
             {
 //                ClassRoom classRoom = schedule.getClassRoom();
-                ClassRoom_Student classRoomStudent = this.classRoomStudentRepository.findByClassRoomAndStudent(classRoom.getId(),student.getPersonId()).get();
-                classRoom.setCurrentSlot(classRoom.getCurrentSlot()-1);
-                this.classRoomRepository.save(classRoom);
+                Class_Student classRoomStudent = this.classRoomStudentRepository.findByClassRoomAndStudent(aClass.getId(),student.getPersonId()).get();
+                aClass.setCurrentSlot(aClass.getCurrentSlot()-1);
+                this.classRepository.save(aClass);
                 this.classRoomStudentRepository.delete(classRoomStudent);
                 check=false;
             }

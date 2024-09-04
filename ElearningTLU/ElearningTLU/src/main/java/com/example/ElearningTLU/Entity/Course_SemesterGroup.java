@@ -1,7 +1,6 @@
 package com.example.ElearningTLU.Entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -34,6 +33,6 @@ public class Course_SemesterGroup {
 
     @OneToMany(mappedBy = "courseSemesterGroup")
 
-    private List<ClassRoom> classRoomList = new ArrayList<>();
+    private List<Class> classList = new ArrayList<>();
 
 }

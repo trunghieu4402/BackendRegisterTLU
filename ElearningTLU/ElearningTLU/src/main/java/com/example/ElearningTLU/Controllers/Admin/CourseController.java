@@ -1,6 +1,6 @@
 package com.example.ElearningTLU.Controllers.Admin;
 
-import com.example.ElearningTLU.Dto.Request.CourseDto;
+import com.example.ElearningTLU.Dto.Request.CourseRequest;
 import com.example.ElearningTLU.Services.CourseService.CourseServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -13,9 +13,9 @@ public class CourseController {
     @Autowired
     private CourseServiceImpl courseService;
     @PostMapping("/addCourse")
-   public ResponseEntity<?> addCourse(@RequestBody CourseDto courseDto)
+   public ResponseEntity<?> addCourse(@RequestBody CourseRequest courseRequest)
     {
-        return this.courseService.addCourse(courseDto);
+        return this.courseService.addCourse(courseRequest);
     }
     @GetMapping("/getAllCourse")
     private ResponseEntity<?> getAll()
@@ -41,9 +41,9 @@ public class CourseController {
 
 
     @PutMapping("/updateCourse")
-    private ResponseEntity<?> update(@RequestBody CourseDto courseDto)
+    private ResponseEntity<?> update(@RequestBody CourseRequest courseRequest)
     {
-        return this.courseService.updateCourse(courseDto);
+        return this.courseService.updateCourse(courseRequest);
     }
 
 }

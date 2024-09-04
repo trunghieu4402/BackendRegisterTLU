@@ -25,7 +25,8 @@ public class UserController {
     @PostMapping("/createStudent")
     public ResponseEntity<?> createStudent(@RequestBody StudentDto personDto)
     {
-        return userService.CreateStudent(personDto);
+        ResponseEntity<?> response =userService.CreateStudent(personDto);
+        return response;
     }
 
     @GetMapping("")

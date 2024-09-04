@@ -1,6 +1,6 @@
 package com.example.ElearningTLU;
 
-import com.example.ElearningTLU.Dto.Request.CourseDto;
+import com.example.ElearningTLU.Dto.Request.CourseRequest;
 import com.example.ElearningTLU.Dto.DepartmentDto;
 import com.example.ElearningTLU.Dto.MajorDto;
 import com.example.ElearningTLU.Entity.*;
@@ -64,20 +64,21 @@ public class ElearningTluApplication {
 
 	@PostConstruct
 	public void run() {
-//		this.UpdateData();
-//				this.UpdateNganh();
-//		this.updateMonHoc();
+		this.UpdateData();
+				this.UpdateNganh();
+		this.updateMonHoc();
 
 //		System.out.println(c		alculateDelayToMidnight());
 //		long period = 10000;
 //		Timer timer = new Timer();
 //		timer.scheduleAtFixedRate(new DailyTask(),calculateDelayToMidnight(),period);
+		this.AutoUpdate();
 
 	}
 	class DailyTask extends TimerTask {
 		@Override
 		public void run() {
-//			AutoUpdate();
+			AutoUpdate();
 //			AutoUpdate();
 //			System.out.println("ham Nay Tu dong Cap Nhat");
 		}
@@ -225,7 +226,7 @@ public class ElearningTluApplication {
 
 	public void updateMonHoc()
 	{
-		CourseDto course = new CourseDto();
+		CourseRequest course = new CourseRequest();
 		String file="D://DataElearning//DanhSachMon.xlsx";
 		try (FileInputStream fileInputStream = new FileInputStream(new File(file))) {
 			Workbook workbook = new XSSFWorkbook(fileInputStream);

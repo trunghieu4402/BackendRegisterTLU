@@ -1,7 +1,7 @@
 package com.example.ElearningTLU.Controllers.Admin;
 
 import com.example.ElearningTLU.Dto.AutoAddClassRoom;
-import com.example.ElearningTLU.Dto.Request.ClassRoomDto;
+import com.example.ElearningTLU.Dto.Request.ClassRequest;
 import com.example.ElearningTLU.Services.ClassRoomService.ClassRoomServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/ClassRoom")
-public class ClassRoomController {
+public class ClassController {
 @Autowired
     private ClassRoomServiceImpl classRoomService;
 
     @PostMapping("/addClassroom")
-    private ResponseEntity<?> add(@RequestBody ClassRoomDto classRoomDto)
+    private ResponseEntity<?> add(@RequestBody ClassRequest classRequest)
     {
-       return this.classRoomService.createClassRoom(classRoomDto);
+       return this.classRoomService.createClassRoom(classRequest);
     }
     @PostMapping("/AutoAddClassRoom")
     private ResponseEntity<?> AutoAdd(@RequestBody AutoAddClassRoom classRoom)

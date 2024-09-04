@@ -1,16 +1,16 @@
 package com.example.ElearningTLU.Services.ClassRoomService;
 
 import com.example.ElearningTLU.Dto.*;
-import com.example.ElearningTLU.Dto.Request.ClassRoomDto;
+import com.example.ElearningTLU.Dto.Request.ClassRequest;
 import com.example.ElearningTLU.Dto.Request.LichHocRequest;
 import com.example.ElearningTLU.Dto.Response.ClassRoomDtoResponse;
 import com.example.ElearningTLU.Dto.Response.CourseSemesterGroupResponse;
 import com.example.ElearningTLU.Dto.Response.LichHocResponse;
 import com.example.ElearningTLU.Dto.Response.TeacherResponse;
 import com.example.ElearningTLU.Entity.*;
+import com.example.ElearningTLU.Entity.Class;
 import com.example.ElearningTLU.Repository.*;
 import com.example.ElearningTLU.Services.CourseSemesterGroupService.CourseSemesterGroupService;
-import com.example.ElearningTLU.Services.CourseSemesterGroupService.CourseSemesterGroupServiceImpl;
 import com.example.ElearningTLU.Utils.RegisterUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +21,11 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.commons.lang3.ObjectUtils.min;
-
 
 @Service
 public class ClassRoomService implements ClassRoomServiceImpl{
     @Autowired
-    private ClassRoomRepository classRoomRepository;
+    private ClassRepository classRepository;
     @Autowired
     private RoomRepository roomRepository;
     @Autowired
@@ -50,32 +48,32 @@ public class ClassRoomService implements ClassRoomServiceImpl{
 
     @Autowired
     private RegisterUtils registerUtils;
-    public ResponseEntity<?> createClassRoom(ClassRoomDto classRoomDto)
+    public ResponseEntity<?> createClassRoom(ClassRequest classRequest)
     {
         int n=0;
         CourseSemesterGroupResponse response = new CourseSemesterGroupResponse();
-        List<ClassRoom> classRoomList = new ArrayList<>();
-        n = this.classRoomRepository.findAllByCourseIdVersion(classRoomDto.getCourseSemesterGroupId()).get().size();
+        List<Class> classList = new ArrayList<>();
+        n = this.classRepository.findAllByCourseIdVersion(classRequest.getCourseSemesterGroupId()).get().size();
         System.out.println(n);
-        for(int i = 0; i<classRoomDto.getLichHocRequestList().size()-1; i++)
+        for(int i = 0; i< classRequest.getLichHocRequestList().size()-1; i++)
         {
-            for(int j = i+1; j<classRoomDto.getLichHocRequestList().size(); j++)
+            for(int j = i+1; j< classRequest.getLichHocRequestList().size(); j++)
             {
-                if(classRoomDto.getLichHocRequestList().get(i).getStart()>=classRoomDto.getLichHocRequestList().get(j).getStart() && classRoomDto.getLichHocRequestList().get(i).getStart()<=classRoomDto.getLichHocRequestList().get(j).getFinish() ||
-                        classRoomDto.getLichHocRequestList().get(i).getFinish()>=classRoomDto.getLichHocRequestList().get(j).getStart() && classRoomDto.getLichHocRequestList().get(i).getFinish()<=classRoomDto.getLichHocRequestList().get(j).getFinish())
+                if(classRequest.getLichHocRequestList().get(i).getStart()>= classRequest.getLichHocRequestList().get(j).getStart() && classRequest.getLichHocRequestList().get(i).getStart()<= classRequest.getLichHocRequestList().get(j).getFinish() ||
+                        classRequest.getLichHocRequestList().get(i).getFinish()>= classRequest.getLichHocRequestList().get(j).getStart() && classRequest.getLichHocRequestList().get(i).getFinish()<= classRequest.getLichHocRequestList().get(j).getFinish())
                 {
                     return new ResponseEntity<>("Lịch Học Của 1 lớp ko dc trùng thời gian",HttpStatus.BAD_REQUEST);
                 }
             }
         }
-        if(this.courseSemesterGroupRepository.findById(classRoomDto.getCourseSemesterGroupId()).isEmpty())
+        if(this.courseSemesterGroupRepository.findById(classRequest.getCourseSemesterGroupId()).isEmpty())
         {
-            return new ResponseEntity<>("Học phần "+classRoomDto.getCourseSemesterGroupId()+" Không được mở",HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Học phần "+ classRequest.getCourseSemesterGroupId()+" Không được mở",HttpStatus.NOT_FOUND);
         }
         List<Integer> seat = new ArrayList<>();
         n+=1;
-        Course_SemesterGroup courseSemesterGroup = this.courseSemesterGroupRepository.findById(classRoomDto.getCourseSemesterGroupId()).get();
-        for(LichHocRequest lichHocRequest : classRoomDto.getLichHocRequestList()) {
+        Course_SemesterGroup courseSemesterGroup = this.courseSemesterGroupRepository.findById(classRequest.getCourseSemesterGroupId()).get();
+        for(LichHocRequest lichHocRequest : classRequest.getLichHocRequestList()) {
             if (!CheckTime(lichHocRequest.getStart(), lichHocRequest.getFinish())) {
                 return new ResponseEntity<>("Thoi Gian mo Lop khong hop Ly", HttpStatus.BAD_REQUEST);
             }
@@ -88,20 +86,21 @@ public class ClassRoomService implements ClassRoomServiceImpl{
             }
             Person person = this.personRepository.findById(lichHocRequest.getTeacher()).get();
             Teacher teacher = this.mapper.map(person, Teacher.class);
-            ClassRoom classRoom = new ClassRoom();
+            Class aClass = new Class();
 
-            classRoom.setClassRoomId(courseSemesterGroup.getCourseId() + "." + n);
-            classRoom.setName(courseSemesterGroup.getCourseName() + "." + n);
+            aClass.setClassRoomId(courseSemesterGroup.getCourseId() + "." + n);
+            aClass.setName(courseSemesterGroup.getCourseName() + "." + n);
 
-            classRoom.setCourseSemesterGroup(courseSemesterGroup);
-            classRoom.setRoom(room);
+            aClass.setCourseSemesterGroup(courseSemesterGroup);
+            aClass.setRoom(room);
 //            classRoom.set
-            classRoom.setStart(lichHocRequest.getStart());
-            classRoom.setFinish(lichHocRequest.getFinish());
-            classRoom.setTeacher(teacher);
-            classRoom=this.classRoomRepository.save(classRoom);
-            seat.add(classRoom.getRoom().getSeats());
-            classRoomList.add(classRoom);
+            aClass.setStart(lichHocRequest.getStart());
+            aClass.setFinish(lichHocRequest.getFinish());
+            aClass.setTeacher(teacher);
+            aClass.setSemesterGroupId(courseSemesterGroup.getSemesterGroup().getSemesterGroupId());
+            aClass =this.classRepository.save(aClass);
+            seat.add(aClass.getRoom().getSeats());
+            classList.add(aClass);
         }
         int min =0;
         for(int i=0;i<seat.size();i++)
@@ -116,21 +115,21 @@ public class ClassRoomService implements ClassRoomServiceImpl{
             }
         }
         ClassRoomDtoResponse classRoomDtoResponse = new ClassRoomDtoResponse();
-        for(ClassRoom classRoom: classRoomList)
+        for(Class aClass : classList)
         {
 
-            classRoomDtoResponse.setClassRoomId(classRoom.getClassRoomId());
-            classRoomDtoResponse.setCurrentSlot(classRoom.getCurrentSlot());
+            classRoomDtoResponse.setClassRoomId(aClass.getClassRoomId());
+            classRoomDtoResponse.setCurrentSlot(aClass.getCurrentSlot());
             classRoomDtoResponse.setMaxSlot(min);
             LichHocResponse lichHocResponse = new LichHocResponse();
             TeacherResponse teacherResponse = new TeacherResponse();
-            teacherResponse.setPersonId(classRoom.getTeacher().getPersonId());
-            teacherResponse.setFullName(classRoom.getTeacher().getFullName());
-            teacherResponse.setPhoneNumber(classRoom.getTeacher().getPhoneNumber());
+            teacherResponse.setPersonId(aClass.getTeacher().getPersonId());
+            teacherResponse.setFullName(aClass.getTeacher().getFullName());
+            teacherResponse.setPhoneNumber(aClass.getTeacher().getPhoneNumber());
             lichHocResponse.setTeacher(teacherResponse);
-            lichHocResponse.setRoomId(classRoom.getRoom().getRoomId());
-            lichHocResponse.setStart(classRoom.getStart());
-            lichHocResponse.setFinish(classRoom.getFinish());
+            lichHocResponse.setRoomId(aClass.getRoom().getRoomId());
+            lichHocResponse.setStart(aClass.getStart());
+            lichHocResponse.setFinish(aClass.getFinish());
             classRoomDtoResponse.getLichHocList().add(lichHocResponse);
         }
         return new ResponseEntity<>(classRoomDtoResponse,HttpStatus.OK);
@@ -150,9 +149,9 @@ public class ClassRoomService implements ClassRoomServiceImpl{
     {
         List<ClassRoomResponse> classRoomResponses= new ArrayList<>();
         int verson=0;
-        if(this.classRoomRepository.findAllByCourseIdVersion(classRoom.getCourseSemesterGroupId()).get().size()!=0)
+        if(this.classRepository.findAllByCourseIdVersion(classRoom.getCourseSemesterGroupId()).get().size()!=0)
         {
-            verson=this.classRoomRepository.findAllByCourseIdVersion(classRoom.getCourseSemesterGroupId()).get().size();
+            verson=this.classRepository.findAllByCourseIdVersion(classRoom.getCourseSemesterGroupId()).get().size();
             System.out.println(verson);
         }
 
@@ -206,15 +205,15 @@ public class ClassRoomService implements ClassRoomServiceImpl{
                         lop1.setSemesterGroup(courseSemesterGroup.getSemesterGroup().getSemesterGroupId());
                         room.getLopList().add(lop1);
 
-                        ClassRoom classRoom1 = new ClassRoom();
-                        classRoom1.setRoom(this.roomRepository.findById(room.getRoomId()).get());
-                        classRoom1.setName(courseSemesterGroup.getCourseName()+" ."+verson);
-                        classRoom1.setClassRoomId(courseSemesterGroup.getCourseId()+"." +verson);
-                        classRoom1.setStart(lop1.getStart());
-                        classRoom1.setFinish(lop1.getFinish());
-                        classRoom1.setCurrentSlot(0);
-                        classRoom1.setCourseSemesterGroup(courseSemesterGroup);
-                        classRoom1=this.classRoomRepository.save(classRoom1);
+                        Class class1 = new Class();
+                        class1.setRoom(this.roomRepository.findById(room.getRoomId()).get());
+                        class1.setName(courseSemesterGroup.getCourseName()+" ."+verson);
+                        class1.setClassRoomId(courseSemesterGroup.getCourseId()+"." +verson);
+                        class1.setStart(lop1.getStart());
+                        class1.setFinish(lop1.getFinish());
+                        class1.setCurrentSlot(0);
+                        class1.setCourseSemesterGroup(courseSemesterGroup);
+                        class1 =this.classRepository.save(class1);
                         verson+=1;
                         n-=1;
 //                        classRoomList.add(classRoom1);
@@ -231,12 +230,12 @@ public class ClassRoomService implements ClassRoomServiceImpl{
         List<ClassRoomResponse> classRoomResponses = new ArrayList<>();
         Course_SemesterGroup course=this.courseSemesterGroupRepository.findById(id).get();
 
-        for (int i=0;i<course.getClassRoomList().size();i++)
+        for (int i = 0; i<course.getClassList().size(); i++)
         {
             boolean shouldBreak = false;
             for (ClassRoomResponse response : classRoomResponses)
             {
-                if(course.getClassRoomList().get(i).getClassRoomId().equals(response.getClassRoomId()))
+                if(course.getClassList().get(i).getClassRoomId().equals(response.getClassRoomId()))
                 {
                     shouldBreak = true;
                     break;
@@ -247,22 +246,22 @@ public class ClassRoomService implements ClassRoomServiceImpl{
                 continue;
             }
             ClassRoomResponse classRoomResponse = new ClassRoomResponse();
-            classRoomResponse.setClassRoomId(course.getClassRoomList().get(i).getClassRoomId());
+            classRoomResponse.setClassRoomId(course.getClassList().get(i).getClassRoomId());
             List<LichHocRequest> lichHocRequestList = new ArrayList<>();
-            for (int j=i;j<course.getClassRoomList().size();j++)
+            for (int j = i; j<course.getClassList().size(); j++)
             {
-                if(course.getClassRoomList().get(i).getClassRoomId().equals(course.getClassRoomList().get(j).getClassRoomId()))
+                if(course.getClassList().get(i).getClassRoomId().equals(course.getClassList().get(j).getClassRoomId()))
                 {
                     LichHocRequest lichHocRequest1 = new LichHocRequest();
-                    lichHocRequest1.setRoomId(course.getClassRoomList().get(j).getRoom().getRoomId());
-                    lichHocRequest1.setStart(course.getClassRoomList().get(j).getStart());
-                    lichHocRequest1.setFinish(course.getClassRoomList().get(j).getFinish());
-                    lichHocRequest1.setTeacher(course.getClassRoomList().get(j).getTeacher().getPersonId());
+                    lichHocRequest1.setRoomId(course.getClassList().get(j).getRoom().getRoomId());
+                    lichHocRequest1.setStart(course.getClassList().get(j).getStart());
+                    lichHocRequest1.setFinish(course.getClassList().get(j).getFinish());
+                    lichHocRequest1.setTeacher(course.getClassList().get(j).getTeacher().getPersonId());
                     lichHocRequestList.add(lichHocRequest1);
 
                 }
             }
-            classRoomResponse.setClassRoomName(course.getClassRoomList().get(i).getName());
+            classRoomResponse.setClassRoomName(course.getClassList().get(i).getName());
             classRoomResponse.setLichHocRequestList(lichHocRequestList);
             classRoomResponses.add(classRoomResponse);
         }
@@ -271,7 +270,7 @@ public class ClassRoomService implements ClassRoomServiceImpl{
     }
     public ResponseEntity<?> getAllClassRoomBySemester(String id)
     {
-        List<ClassRoom> classRoomList = new ArrayList<>();
+        List<Class> classList = new ArrayList<>();
         if(this.semesterGroup.findById(id).isEmpty())
         {
             return new ResponseEntity<>("Ky hoc "+id+" Khong Ton tai",HttpStatus.NOT_FOUND);
@@ -301,8 +300,8 @@ public class ClassRoomService implements ClassRoomServiceImpl{
     }
     public ResponseEntity<?> getClassRoom(String id)
     {
-        List<ClassRoom> classRoomList = this.classRoomRepository.findByClassRoomId(id);
-        return new ResponseEntity<>(classRoomList,HttpStatus.OK);
+        List<Class> classList = this.classRepository.findByClassRoomId(id);
+        return new ResponseEntity<>(classList,HttpStatus.OK);
     }
 
 }

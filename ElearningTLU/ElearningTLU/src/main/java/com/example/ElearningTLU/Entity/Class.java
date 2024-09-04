@@ -10,7 +10,7 @@ import java.util.List;
 
 @Entity
 @Data
-public class ClassRoom {
+public class Class {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,6 +35,7 @@ public class ClassRoom {
     private Integer finish ;
 
     private int currentSlot;
+    private String semesterGroupId;
 
     @ManyToOne
     @JoinColumn(name = "teacherId")
@@ -43,6 +44,6 @@ public class ClassRoom {
     private Teacher teacher;
 
 
-    @OneToMany(mappedBy = "classRoom")
-    List<ClassRoom_Student> classRoomStudents = new ArrayList<>();
+    @OneToMany(mappedBy = "aClass")
+    List<Class_Student> classStudents = new ArrayList<>();
 }

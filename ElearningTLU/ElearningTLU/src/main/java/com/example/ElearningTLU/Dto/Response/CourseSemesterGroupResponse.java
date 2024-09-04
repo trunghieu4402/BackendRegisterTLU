@@ -1,6 +1,5 @@
 package com.example.ElearningTLU.Dto.Response;
 
-import com.example.ElearningTLU.Dto.Request.ClassRoomDto;
 import lombok.Data;
 
 import java.util.ArrayList;

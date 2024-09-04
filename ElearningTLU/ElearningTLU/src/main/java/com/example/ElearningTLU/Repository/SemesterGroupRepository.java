@@ -15,7 +15,8 @@ public interface SemesterGroupRepository extends JpaRepository<Semester_Group,St
     Optional<List<Semester_Group>>getAllSemesterGroupByActive(@Param("i") boolean i);
     @Query(value = "SELECT * FROM db_e_learningtlu.semester_group where active =:status",nativeQuery = true)
     Optional<List<Semester_Group>>findByStatus(@Param("status") boolean s);
-
+    @Query(value = "SELECT * FROM db_e_learningtlu.semester_group where group_id=:group and EXTRACT(YEAR FROM finish) =:year ; ",nativeQuery = true)
+    List<Semester_Group> findByGroupAndYear(@Param("group") String groupId , @Param("year") int year);
     @Query(value = "SELECT \n" +
             "    *\n" +
             "FROM\n" +

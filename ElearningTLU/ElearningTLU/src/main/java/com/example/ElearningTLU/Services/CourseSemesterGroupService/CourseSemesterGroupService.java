@@ -1,7 +1,5 @@
 package com.example.ElearningTLU.Services.CourseSemesterGroupService;
 
-import com.example.ElearningTLU.Dto.ClassRoomResponse;
-import com.example.ElearningTLU.Dto.Request.ClassRoomDto;
 import com.example.ElearningTLU.Dto.Response.ClassRoomDtoResponse;
 import com.example.ElearningTLU.Dto.Request.CourseSemesterGroupDto;
 import com.example.ElearningTLU.Dto.Response.CourseSemesterGroupResponse;
@@ -83,31 +81,31 @@ public class CourseSemesterGroupService implements CourseSemesterGroupServiceImp
             dto.setCourseId(courseSemesterGroup.getCourseId());
             dto.setSemesterGroupId(courseSemesterGroup.getSemesterGroup().getSemesterGroupId());
             dto.setCourseName(courseSemesterGroup.getCourseName());
-            for(int i=0;i<courseSemesterGroup.getClassRoomList().size();i++)
+            for(int i = 0; i<courseSemesterGroup.getClassList().size(); i++)
             {
                 ClassRoomDtoResponse classRoomDto = new ClassRoomDtoResponse();
-                classRoomDto.setClassRoomId(courseSemesterGroup.getClassRoomList().get(i).getClassRoomId());
+                classRoomDto.setClassRoomId(courseSemesterGroup.getClassList().get(i).getClassRoomId());
                 LichHocResponse lichHoc = new LichHocResponse();
                 TeacherResponse teacherResponse = new TeacherResponse();
-                teacherResponse = this.mapper.map(courseSemesterGroup.getClassRoomList().get(i).getTeacher(),TeacherResponse.class);
+                teacherResponse = this.mapper.map(courseSemesterGroup.getClassList().get(i).getTeacher(),TeacherResponse.class);
                 lichHoc.setTeacher(teacherResponse);
-                lichHoc.setStart(courseSemesterGroup.getClassRoomList().get(i).getStart());
-                lichHoc.setFinish(courseSemesterGroup.getClassRoomList().get(i).getFinish());
-                lichHoc.setRoomId(courseSemesterGroup.getClassRoomList().get(i).getRoom().getRoomId());
+                lichHoc.setStart(courseSemesterGroup.getClassList().get(i).getStart());
+                lichHoc.setFinish(courseSemesterGroup.getClassList().get(i).getFinish());
+                lichHoc.setRoomId(courseSemesterGroup.getClassList().get(i).getRoom().getRoomId());
                 classRoomDto.getLichHocList().add(lichHoc);
-                for(int j=i+1;j<courseSemesterGroup.getClassRoomList().size();j++)
+                for(int j = i+1; j<courseSemesterGroup.getClassList().size(); j++)
                 {
 
-                    if(courseSemesterGroup.getClassRoomList().get(i).getClassRoomId().equals(courseSemesterGroup.getClassRoomList().get(j).getClassRoomId()))
+                    if(courseSemesterGroup.getClassList().get(i).getClassRoomId().equals(courseSemesterGroup.getClassList().get(j).getClassRoomId()))
                     {
 //                        TeacherResponse teacher = new TeacherResponse();
                         TeacherResponse teacherResponse1 = new TeacherResponse();
-                        teacherResponse1 = this.mapper.map(courseSemesterGroup.getClassRoomList().get(j).getTeacher(),TeacherResponse.class);
+                        teacherResponse1 = this.mapper.map(courseSemesterGroup.getClassList().get(j).getTeacher(),TeacherResponse.class);
                         LichHocResponse lichHocResponse = new LichHocResponse();
                         lichHocResponse.setTeacher(teacherResponse1);
-                        lichHocResponse.setStart(courseSemesterGroup.getClassRoomList().get(j).getStart());
-                        lichHocResponse.setFinish(courseSemesterGroup.getClassRoomList().get(j).getFinish());
-                        lichHocResponse.setRoomId(courseSemesterGroup.getClassRoomList().get(j).getRoom().getRoomId());
+                        lichHocResponse.setStart(courseSemesterGroup.getClassList().get(j).getStart());
+                        lichHocResponse.setFinish(courseSemesterGroup.getClassList().get(j).getFinish());
+                        lichHocResponse.setRoomId(courseSemesterGroup.getClassList().get(j).getRoom().getRoomId());
                         classRoomDto.getLichHocList().add(lichHocResponse);
                         i+=1;
                     }

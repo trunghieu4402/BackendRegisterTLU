@@ -33,8 +33,8 @@ public  class Course {
 //    private List<Requirement> listCourse = new ArrayList<>();
 
     @ManyToMany
-    @JsonIgnoreProperties({"courseName","credits","coefficient","type","requestCredits","diemKienTienQuyet"})
-    private List<Course> diemKienTienQuyet = new ArrayList<>();
+    @JsonIgnoreProperties({"courseName","credits","coefficient","type","requestCredits","Prerequisites"})
+    private List<Course> Prerequisites = new ArrayList<>();
 
 //    @ManyToMany(fetch = FetchType.LAZY)
 //    @JoinTable(name = "Course_Department",

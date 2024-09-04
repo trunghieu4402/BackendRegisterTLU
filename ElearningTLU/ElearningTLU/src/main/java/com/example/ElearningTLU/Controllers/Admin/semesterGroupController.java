@@ -1,6 +1,6 @@
 package com.example.ElearningTLU.Controllers.Admin;
 
-import com.example.ElearningTLU.Dto.SemesterGroupDto;
+import com.example.ElearningTLU.Dto.SemesterGroupRequest;
 import com.example.ElearningTLU.Services.SemesterService.SemesterGroupServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -14,9 +14,9 @@ public class semesterGroupController {
     private SemesterGroupServiceImpl semesterGroupService;
 
     @PostMapping("/addSemesterGroup")
-    public ResponseEntity<?> addSemesterGroup(@RequestBody SemesterGroupDto semesterGroupDto)
+    public ResponseEntity<?> addSemesterGroup(@RequestBody SemesterGroupRequest semesterGroupRequest)
     {
-        return this.semesterGroupService.addSemesterGroup(semesterGroupDto);
+        return this.semesterGroupService.addSemesterGroup(semesterGroupRequest);
     }
     @GetMapping("/getAllSemesterGroup")
     public ResponseEntity<?> getAll()
@@ -39,8 +39,8 @@ public class semesterGroupController {
         return this.semesterGroupService.deleteSemesterGroupById(id);
     }
     @PutMapping("/updateSemesterGroup")
-    public ResponseEntity<?> update(@RequestBody SemesterGroupDto semesterGroupDto )
+    public ResponseEntity<?> update(@RequestBody SemesterGroupRequest semesterGroupRequest)
     {
-        return this.semesterGroupService.updateSemesterGroup(semesterGroupDto);
+        return this.semesterGroupService.updateSemesterGroup(semesterGroupRequest);
     }
 }
